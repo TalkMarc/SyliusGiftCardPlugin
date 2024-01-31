@@ -71,7 +71,11 @@ final class AddItemToCartHandler
         $cartItem = $this->cartItemFactory->createNew();
         $cartItem->setVariant($productVariant);
 
-        if ($addItemToCart instanceof SetonoSyliusGiftCardAddItemToCart) {
+        $isGiftCard = $addItemToCart instanceof SetonoSyliusGiftCardAddItemToCart
+            && $productVariant->getProduct() instanceof ProductInterface
+            && $productVariant->getProduct()->isGiftCard();
+
+        if ($isGiftCard) {
             /** @var ProductInterface $product */
             $product = $productVariant->getProduct();
             if ($product->isGiftCardAmountConfigurable()) {
@@ -85,7 +89,7 @@ final class AddItemToCartHandler
         $this->orderItemQuantityModifier->modify($cartItem, $addItemToCart->quantity);
         $this->orderModifier->addToOrder($cart, $cartItem);
 
-        if ($addItemToCart instanceof SetonoSyliusGiftCardAddItemToCart) {
+        if ($isGiftCard) {
             /** @var OrderItemUnitInterface $unit */
             foreach ($cartItem->getUnits() as $unit) {
                 $giftCard = $this->giftCardFactory->createFromOrderItemUnitAndCart($unit, $cart);
